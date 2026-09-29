@@ -27,7 +27,6 @@
 
 #define CODEBYTES 9
 #define OFSSIZE 8
-#define PREFFMTSTR "25"
 #define USELSLINE 1 /* also in assemble.c! */
 
 #ifdef __UNIX__
@@ -265,12 +264,15 @@ void LstWrite( enum lsttype type, uint_32 oldofs, void *value )
             idx = 10;
         }
         ll.buffer[idx] = '=';
+        /* pad the value up to column 28; if an offset precedes it, the
+         * field is narrower, else it would run past the end of ll.buffer */
+        idx += 2;
 #if AMD64_SUPPORT
         if ( sym->value3264 != 0 && ( sym->value3264 != -1 || sym->value >= 0 ) )
-            sprintf( &ll.buffer[idx+2], "%-" PREFFMTSTR I64_SPEC "X", (uint_64)sym->value + ( (uint_64)sym->value3264 << 32 ) );
+            sprintf( &ll.buffer[idx], "%-*" I64_SPEC "X", 28 - idx, (uint_64)sym->value + ( (uint_64)sym->value3264 << 32 ) );
         else
 #endif
-            sprintf( &ll.buffer[idx+2], "%-" PREFFMTSTR I32_SPEC "X", sym->value );
+            sprintf( &ll.buffer[idx], "%-*" I32_SPEC "X", 28 - idx, sym->value );
         ll.buffer[28] = ' ';
         break;
     case LSTTYPE_TMACRO:
